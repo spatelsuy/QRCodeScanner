@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Code Scanner with Image Upload</title>
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    <style>
+        .container { display: flex; flex-direction: column; gap: 20px; max-width: 800px; margin: 0 auto; }
+        .scanner-section, .upload-section { border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
+        #video { width: 100%; max-width: 500px; background: #000; }
+        #result { margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+        button { padding: 10px 15px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #3367d6; }
+        #fileInput { display: none; }
+        .file-upload-btn { display: inline-block; padding: 10px 15px; background: #34a853; color: white; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QR Code Scanner</h1>
+        
+        <!-- Camera Scanner Section -->
+        <div class="scanner-section">
+            <h2>Camera Scan</h2>
+            <video id="video" width="300" height="200"></video>
+            <div>
+                <button id="startButton">Start Camera</button>
+                <button id="stopButton" disabled>Stop Camera</button>
+            </div>
+        </div>
+        
+        <!-- Image Upload Section -->
+        <div class="upload-section">
+            <h2>Image Upload</h2>
+            <label for="fileInput" class="file-upload-btn">Choose QR Code Image</label>
+            <input type="file" id="fileInput" accept="image/*" />
+            <div id="imagePreview" style="margin-top: 10px;"></div>
+        </div>
+        
+        <!-- Results -->
+        <div id="result">No QR code detected yet...</div>
+    </div>
+
+    <script>
+        const codeReader = new ZXing.BrowserQRCodeReader();
+        const resultElement = document.getElementById('result');
+        const videoElement = document.getElementById('video');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const fileInput = document.getElementById('fileInput');
+        const imagePreview = document.getElementById('imagePreview');
+        
+        let scanActive = false;
+        let currentDecodePromise;
+
+        // Camera scanning functions
+        async function startScanning() {
+            try {
+                resultElement.textContent = "Initializing camera...";
+                await codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
+                    if (result) {
+                        resultElement.innerHTML = `<strong>Decoded:</strong> ${result.text}`;
+                    }
+                    if (err && !(err instanceof ZXing.NotFoundException)) {
+                        console.error(err);
+                        resultElement.textContent = `Error: ${err.message}`;
+                    }
+                });
+                
+                scanActive = true;
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                resultElement.textContent = "Scanning for QR codes...";
+            } catch (err) {
+                console.error(err);
+                resultElement.textContent = `Error accessing camera: ${err.message}`;
+            }
+        }
+
+        function stopScanning() {
+            codeReader.reset();
+            scanActive = false;
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            resultElement.textContent = "Camera stopped";
+        }
+
+        // Image upload functions
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Show image preview
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.style.maxWidth = '300px';
+            imagePreview.innerHTML = '';
+            imagePreview.appendChild(img);
+            
+            // Decode QR code from image
+            try {
+                resultElement.textContent = "Processing image...";
+                const result = await codeReader.decodeFromImage(undefined, img.src);
+                resultElement.innerHTML = `<strong>Decoded from image:</strong> ${result.text}`;
+            } catch (err) {
+                if (err instanceof ZXing.NotFoundException) {
+                    resultElement.textContent = "No QR code found in this image";
+                } else {
+                    console.error(err);
+                    resultElement.textContent = `Error: ${err.message}`;
+                }
+            }
+        });
+
+        // Button event listeners
+        startButton.addEventListener('click', startScanning);
+        stopButton.addEventListener('click', stopScanning);
+    </script>
+</body>
+</html>
