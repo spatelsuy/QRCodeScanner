@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QR Code Scanner with Image Upload</title>
+    <title>QR Code Scanner with Image Paste</title>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <style>
         .container { display: flex; flex-direction: column; gap: 20px; max-width: 800px; margin: 0 auto; }
@@ -12,6 +12,14 @@
         button:hover { background: #3367d6; }
         #fileInput { display: none; }
         .file-upload-btn { display: inline-block; padding: 10px 15px; background: #34a853; color: white; border-radius: 4px; cursor: pointer; }
+        .paste-area { 
+            border: 2px dashed #ccc; 
+            padding: 20px; 
+            text-align: center; 
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .paste-area:hover { background-color: #f9f9f9; }
     </style>
 </head>
 <body>
@@ -30,9 +38,14 @@
         
         <!-- Image Upload Section -->
         <div class="upload-section">
-            <h2>Image Upload</h2>
+            <h2>Image Upload/Paste</h2>
             <label for="fileInput" class="file-upload-btn">Choose QR Code Image</label>
             <input type="file" id="fileInput" accept="image/*" />
+            
+            <div class="paste-area" id="pasteArea">
+                <p>Or paste an image here (Ctrl+V)</p>
+            </div>
+            
             <div id="imagePreview" style="margin-top: 10px;"></div>
         </div>
         
@@ -42,13 +55,13 @@
 
     <script>
         const codeReader = new ZXing.BrowserQRCodeReader();
-        //const codeReader = new ZXingLibrary.BrowserQRCodeReader();
         const resultElement = document.getElementById('result');
         const videoElement = document.getElementById('video');
         const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
         const fileInput = document.getElementById('fileInput');
         const imagePreview = document.getElementById('imagePreview');
+        const pasteArea = document.getElementById('pasteArea');
         
         let scanActive = false;
         let currentDecodePromise;
@@ -85,14 +98,11 @@
             resultElement.textContent = "Camera stopped";
         }
 
-        // Image upload functions
-        fileInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-            
+        // Process image from file or clipboard
+        async function processImage(imageSource) {
             // Show image preview
             const img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
+            img.src = imageSource;
             img.style.maxWidth = '300px';
             imagePreview.innerHTML = '';
             imagePreview.appendChild(img);
@@ -101,13 +111,38 @@
             try {
                 resultElement.textContent = "Processing image...";
                 const result = await codeReader.decodeFromImage(undefined, img.src);
-                resultElement.innerHTML = `<strong>Decoded from image:</strong> ${result.text}`;
+                resultElement.innerHTML = `<strong>Decoded:</strong> ${result.text}`;
             } catch (err) {
                 if (err instanceof ZXing.NotFoundException) {
                     resultElement.textContent = "No QR code found in this image";
                 } else {
                     console.error(err);
                     resultElement.textContent = `Error: ${err.message}`;
+                }
+            }
+        }
+
+        // Image upload handler
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            processImage(URL.createObjectURL(file));
+        });
+
+        // Clipboard paste handler
+        pasteArea.addEventListener('click', () => {
+            pasteArea.focus();
+        });
+
+        pasteArea.addEventListener('paste', async (event) => {
+            const items = (event.clipboardData || window.clipboardData).items;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const blob = items[i].getAsFile();
+                    processImage(URL.createObjectURL(blob));
+                    event.preventDefault();
+                    break;
                 }
             }
         });
