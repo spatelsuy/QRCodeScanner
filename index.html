@@ -1,56 +1,241 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>QR Code Scanner with Image Paste</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional QR Code Scanner</title>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <style>
-        .container { display: flex; flex-direction: column; gap: 20px; max-width: 800px; margin: 0 auto; }
-        .scanner-section, .upload-section { border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
-        #video { width: 100%; max-width: 500px; background: #000; }
-        #result { margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px; }
-        button { padding: 10px 15px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #3367d6; }
-        #fileInput { display: none; }
-        .file-upload-btn { display: inline-block; padding: 10px 15px; background: #34a853; color: white; border-radius: 4px; cursor: pointer; }
-        .paste-area { 
-            border: 2px dashed #ccc; 
-            padding: 20px; 
-            text-align: center; 
-            margin-top: 10px;
-            cursor: pointer;
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --error-color: #ea4335;
+            --background-color: #f8f9fa;
+            --border-color: #dfe1e5;
+            --text-color: #202124;
+            --light-text: #5f6368;
         }
-        .paste-area:hover { background-color: #f9f9f9; }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        
+        h2 {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .section {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        #video {
+            width: 100%;
+            max-width: 400px;
+            background: #000;
+            border-radius: 4px;
+            display: block;
+            margin: 0 auto 15px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #stopButton {
+            background-color: var(--error-color);
+        }
+        
+        .file-upload-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        
+        .file-upload-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .paste-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: rgba(66, 133, 244, 0.05);
+        }
+        
+        .paste-area:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(66, 133, 244, 0.1);
+        }
+        
+        .paste-area p {
+            margin: 0;
+            color: var(--light-text);
+        }
+        
+        .paste-area .icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        #imagePreview {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        #imagePreview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            object-fit: contain;
+        }
+        
+        #result {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #f1f3f4;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            font-size: 0.95rem;
+        }
+        
+        #result strong {
+            color: var(--primary-color);
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background-color: #e8f0fe;
+            color: var(--primary-color);
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>QR Code Scanner</h1>
+        <h1>Professional QR Code Scanner</h1>
         
         <!-- Camera Scanner Section -->
-        <div class="scanner-section">
+        <div class="section">
             <h2>Camera Scan</h2>
-            <video id="video" width="300" height="200"></video>
-            <div>
+            <video id="video" width="400" height="300"></video>
+            <div class="button-group">
                 <button id="startButton">Start Camera</button>
                 <button id="stopButton" disabled>Stop Camera</button>
             </div>
         </div>
         
         <!-- Image Upload Section -->
-        <div class="upload-section">
+        <div class="section">
             <h2>Image Upload/Paste</h2>
-            <label for="fileInput" class="file-upload-btn">Choose QR Code Image</label>
+            <label for="fileInput" class="file-upload-btn">
+                <span class="icon">📁</span> Choose QR Code Image
+            </label>
             <input type="file" id="fileInput" accept="image/*" />
             
-            <div class="paste-area" id="pasteArea">
+            <div class="paste-area" id="pasteArea" tabindex="0">
+                <div class="icon">📋</div>
                 <p>Or paste an image here (Ctrl+V)</p>
+                <p><small>Take a screenshot and paste directly</small></p>
             </div>
             
-            <div id="imagePreview" style="margin-top: 10px;"></div>
+            <div id="imagePreview"></div>
         </div>
         
         <!-- Results -->
-        <div id="result">No QR code detected yet...</div>
+        <div id="result">
+            <span class="status">READY</span> No QR code detected yet...
+        </div>
     </div>
 
     <script>
@@ -66,27 +251,37 @@
         let scanActive = false;
         let currentDecodePromise;
 
+        // Update status in result box
+        function updateStatus(message, isError = false) {
+            const statusElement = resultElement.querySelector('.status');
+            statusElement.textContent = isError ? 'ERROR' : 'STATUS';
+            statusElement.style.backgroundColor = isError ? '#fce8e6' : '#e8f0fe';
+            statusElement.style.color = isError ? var(--error-color) : var(--primary-color);
+            resultElement.style.borderLeftColor = isError ? var(--error-color) : var(--primary-color);
+            resultElement.innerHTML = `<span class="status">${isError ? 'ERROR' : 'STATUS'}</span> ${message}`;
+        }
+
         // Camera scanning functions
         async function startScanning() {
             try {
-                resultElement.textContent = "Initializing camera...";
+                updateStatus("Initializing camera...");
                 await codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
                     if (result) {
-                        resultElement.innerHTML = `<strong>Decoded:</strong> ${result.text}`;
+                        updateStatus(`<strong>Decoded:</strong> ${result.text}`);
                     }
                     if (err && !(err instanceof ZXing.NotFoundException)) {
                         console.error(err);
-                        resultElement.textContent = `Error: ${err.message}`;
+                        updateStatus(`Error: ${err.message}`, true);
                     }
                 });
                 
                 scanActive = true;
                 startButton.disabled = true;
                 stopButton.disabled = false;
-                resultElement.textContent = "Scanning for QR codes...";
+                updateStatus("Scanning for QR codes...");
             } catch (err) {
                 console.error(err);
-                resultElement.textContent = `Error accessing camera: ${err.message}`;
+                updateStatus(`Error accessing camera: ${err.message}`, true);
             }
         }
 
@@ -95,29 +290,42 @@
             scanActive = false;
             startButton.disabled = false;
             stopButton.disabled = true;
-            resultElement.textContent = "Camera stopped";
+            updateStatus("Camera stopped");
         }
 
         // Process image from file or clipboard
         async function processImage(imageSource) {
             // Show image preview
             const img = document.createElement('img');
+            img.onload = function() {
+                // Resize if larger than 200px in either dimension
+                if (this.naturalWidth > 200 || this.naturalHeight > 200) {
+                    const ratio = Math.min(200 / this.naturalWidth, 200 / this.naturalHeight);
+                    this.width = this.naturalWidth * ratio;
+                    this.height = this.naturalHeight * ratio;
+                } else {
+                    // Keep original size if smaller than 200px
+                    this.width = this.naturalWidth;
+                    this.height = this.naturalHeight;
+                }
+            };
             img.src = imageSource;
-            img.style.maxWidth = '300px';
+            img.style.maxWidth = '200px';
+            img.style.maxHeight = '200px';
             imagePreview.innerHTML = '';
             imagePreview.appendChild(img);
             
             // Decode QR code from image
             try {
-                resultElement.textContent = "Processing image...";
+                updateStatus("Processing image...");
                 const result = await codeReader.decodeFromImage(undefined, img.src);
-                resultElement.innerHTML = `<strong>Decoded:</strong> ${result.text}`;
+                updateStatus(`<strong>Decoded:</strong> ${result.text}`);
             } catch (err) {
                 if (err instanceof ZXing.NotFoundException) {
-                    resultElement.textContent = "No QR code found in this image";
+                    updateStatus("No QR code found in this image");
                 } else {
                     console.error(err);
-                    resultElement.textContent = `Error: ${err.message}`;
+                    updateStatus(`Error: ${err.message}`, true);
                 }
             }
         }
