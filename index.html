@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Scanner using zxing</title>
+    <title>Professional QR Code Scanner</title>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <style>
         :root {
@@ -212,7 +212,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>QR Code Scanner using zxing</h2>
+        <h1>Professional QR Code Scanner</h1>
         
         <!-- Camera Scanner Section -->
         <div class="section">
@@ -229,7 +229,7 @@
             <h2>Image Upload/Paste</h2>
             <div class="file-upload-wrapper">
                 <label for="fileInput" class="file-upload-btn">
-                    <span class="icon">📁</span> Upload QR Code Image
+                    <span class="icon">📁</span> Choose QR Code Image
                 </label>
                 <input type="file" id="fileInput" accept="image/*" />
             </div>
@@ -267,8 +267,8 @@
             const statusElement = resultElement.querySelector('.status');
             statusElement.textContent = isError ? 'ERROR' : 'STATUS';
             statusElement.style.backgroundColor = isError ? '#fce8e6' : '#e8f0fe';
-            statusElement.style.color = isError ? var(--error-color) : var(--primary-color);
-            resultElement.style.borderLeftColor = isError ? var(--error-color) : var(--primary-color);
+            statusElement.style.color = isError ? 'var(--error-color)' : 'var(--primary-color)';
+            resultElement.style.borderLeftColor = isError ? 'var(--error-color)' : 'var(--primary-color)';
             resultElement.innerHTML = `<span class="status">${isError ? 'ERROR' : 'STATUS'}</span> ${message}`;
         }
 
